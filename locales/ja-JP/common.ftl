@@ -96,6 +96,12 @@ lsp-error = LSP エラー
 # New Recipe
 new-recipe = 新しいレシピ
 import-recipe = インポート
+import-title = レシピをインポート
+import-url = レシピのURL
+import-folder = フォルダー
+import-hint = ページをCooklangに変換し、いくつかのタグを付けてこのフォルダーに保存します。数秒かかります。
+import-submit = インポート
+import-working = インポート中…
 new-recipe-path = レシピのパス
 new-recipe-filename = レシピ名
 new-recipe-placeholder = 和食/煮物/肉じゃが

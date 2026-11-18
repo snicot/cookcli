@@ -96,6 +96,12 @@ lsp-error = LSP-fout
 # New Recipe
 new-recipe = Nieuw Recept
 import-recipe = Importeren
+import-title = Recept importeren
+import-url = Recept-URL
+import-folder = Map
+import-hint = De pagina wordt omgezet naar Cooklang, krijgt een paar tags en wordt in deze map opgeslagen. Dat duurt een paar seconden.
+import-submit = Importeren
+import-working = Bezig met importeren…
 new-recipe-path = Receptpad
 new-recipe-filename = Receptnaam
 new-recipe-placeholder = Avondeten/Italiaans/Pasta Carbonara

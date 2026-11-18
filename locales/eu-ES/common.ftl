@@ -96,6 +96,12 @@ lsp-error = LSP-ren errorea
 # New Recipe
 new-recipe = Errezeta berria
 import-recipe = Inportatu
+import-title = Errezeta bat inportatu
+import-url = Errezetaren URLa
+import-folder = Karpeta
+import-hint = Orria Cooklang-era bihurtzen da, etiketa batzuk jasotzen ditu eta karpeta honetan gordetzen da. Segundo batzuk behar ditu.
+import-submit = Inportatu
+import-working = Inportatzen…
 new-recipe-path = Errezetaren bidea
 new-recipe-filename = Errezetaren izena
 new-recipe-placeholder = Afaria/Italiarra/Pasta Carbonara

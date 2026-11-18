@@ -319,8 +319,8 @@ pub struct RecipesTemplate {
     pub new_plan_url: String,
     /// `/random` link for the current folder; `None` hides the button.
     pub random_recipe_url: Option<String>,
-    /// External recipe-import page from `COOK_IMPORT_URL`, with the current
-    /// folder as `?folder=`; `None` hides the Import button.
+    /// The Import page with the current folder as `?folder=`, when an
+    /// importer is set (`COOK_IMPORTER_URL`); `None` hides the Import button.
     pub import_url: Option<String>,
     pub tr: Tr,
     pub prefix: String,
@@ -854,6 +854,25 @@ pub struct NewTemplate {
     pub viewer: Viewer,
 }
 
+/// The Import page: a recipe URL and the folder to save it in, sent to the
+/// importer at `COOK_IMPORTER_URL`.
+#[cfg(feature = "server")]
+#[derive(Template)]
+#[template(path = "import.html")]
+pub struct ImportTemplate {
+    pub active: String,
+    pub tr: Tr,
+    pub error: Option<String>,
+    pub url: String,
+    pub folder: String,
+    pub folders: Vec<String>,
+    pub prefix: String,
+    pub static_mode: bool,
+    pub repo_url: Option<String>,
+    pub features: FeatureFlags,
+    pub viewer: Viewer,
+}
+
 #[cfg(feature = "server")]
 #[derive(Template)]
 #[template(path = "login.html")]
@@ -1255,6 +1274,7 @@ impl_into_response!(
     AislesTemplate,
     EditTemplate,
     NewTemplate,
+    ImportTemplate,
     ApiDocsTemplate,
     LoginTemplate,
 );
