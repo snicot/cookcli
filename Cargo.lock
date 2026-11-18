@@ -858,7 +858,7 @@ dependencies = [
 [[package]]
 name = "cooklang-find"
 version = "0.12.1"
-source = "git+https://github.com/SebastienSyd/cooklang-find?branch=fix%2Fsearch-ignore-accents#20dc927bae6bcc188cff8269577e1251d67f7528"
+source = "git+https://github.com/snicot/cooklang-find?branch=fix%2Fsearch-ignore-accents#20dc927bae6bcc188cff8269577e1251d67f7528"
 dependencies = [
  "camino",
  "glob",
