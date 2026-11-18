@@ -95,6 +95,7 @@ lsp-error = LSP エラー
 
 # New Recipe
 new-recipe = 新しいレシピ
+import-recipe = インポート
 new-recipe-path = レシピのパス
 new-recipe-filename = レシピ名
 new-recipe-placeholder = 和食/煮物/肉じゃが

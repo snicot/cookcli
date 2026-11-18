@@ -95,6 +95,7 @@ lsp-error = LSP-fout
 
 # New Recipe
 new-recipe = Nieuw Recept
+import-recipe = Importeren
 new-recipe-path = Receptpad
 new-recipe-filename = Receptnaam
 new-recipe-placeholder = Avondeten/Italiaans/Pasta Carbonara

@@ -95,6 +95,7 @@ lsp-error = LSP Fel
 
 # New Recipe
 new-recipe = Nytt Recept
+import-recipe = Importera
 new-recipe-path = Recept sökväg
 new-recipe-filename = Recept namn
 new-recipe-placeholder = Middag/Italienskt/Pasta Carbonara
