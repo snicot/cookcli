@@ -854,8 +854,8 @@ pub struct NewTemplate {
     pub viewer: Viewer,
 }
 
-/// The Import page: a recipe URL and the folder to save it in, sent to the
-/// importer at `COOK_IMPORTER_URL`.
+/// The Import page: a recipe URL or a recipe pasted as text, and the folder
+/// to save it in, sent to the importer at `COOK_IMPORTER_URL`.
 #[cfg(feature = "server")]
 #[derive(Template)]
 #[template(path = "import.html")]
@@ -864,6 +864,10 @@ pub struct ImportTemplate {
     pub tr: Tr,
     pub error: Option<String>,
     pub url: String,
+    /// A recipe pasted as text, sent back with an error.
+    pub text: String,
+    /// The text tab is the one shown.
+    pub from_text: bool,
     pub folder: String,
     pub folders: Vec<String>,
     pub prefix: String,

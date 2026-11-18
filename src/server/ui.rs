@@ -1373,11 +1373,12 @@ async fn api_docs_page(
 
 // --- Import (fork) ----------------------------------------------------------
 //
-// `/import` sends a recipe URL and a folder to the importer at
-// `COOK_IMPORTER_URL` (`POST /api/import`, JSON `{url, folder}`), which
-// converts the page to Cooklang and saves it in that folder of the recipe
-// directory; it answers `{path}` or `{error}`. This server only shows the form
-// and opens the new recipe: the importer needs the same recipe directory.
+// `/import` sends a recipe URL, or a recipe pasted as text, and a folder to
+// the importer at `COOK_IMPORTER_URL` (`POST /api/import`, JSON
+// `{url, folder}` or `{text, folder}`), which converts it to Cooklang and
+// saves it in that folder of the recipe directory; it answers `{path}` or
+// `{error}`. This server only shows the form and opens the new recipe: the
+// importer needs the same recipe directory.
 
 /// Where imports go when no folder is picked.
 const IMPORT_INBOX: &str = "À trier";
@@ -1405,11 +1406,52 @@ fn import_folders(base: &camino::Utf8Path) -> Vec<String> {
     folders
 }
 
+/// What the form shows: empty, or sent back with an error and what was typed.
+#[derive(Default)]
+struct ImportFormState {
+    url: String,
+    text: String,
+    from_text: bool,
+    folder: Option<String>,
+    error: Option<String>,
+}
+
+fn import_form(
+    state: &AppState,
+    lang: LanguageIdentifier,
+    features: FeatureFlags,
+    viewer: Viewer,
+    form: ImportFormState,
+) -> ImportTemplate {
+    let folders = import_folders(&state.base_path);
+    // A sub-folder's button passes its path; the import goes in its top folder.
+    let folder = form
+        .folder
+        .as_deref()
+        .and_then(|f| f.split('/').next())
+        .filter(|f| folders.iter().any(|known| known == f))
+        .unwrap_or(IMPORT_INBOX)
+        .to_string();
+    ImportTemplate {
+        active: "recipes".to_string(),
+        tr: Tr::new(lang),
+        error: form.error,
+        url: form.url,
+        text: form.text,
+        from_text: form.from_text,
+        folder,
+        folders,
+        prefix: state.url_prefix.clone(),
+        static_mode: false,
+        repo_url: None,
+        features,
+        viewer,
+    }
+}
+
 #[derive(Deserialize)]
 struct ImportPageQuery {
     folder: Option<String>,
-    url: Option<String>,
-    error: Option<String>,
 }
 
 async fn import_page(
@@ -1422,34 +1464,22 @@ async fn import_page(
     if importer_url().is_none() {
         return StatusCode::NOT_FOUND.into_response();
     }
-    let folders = import_folders(&state.base_path);
-    // A sub-folder's button passes its path; the import goes in its top folder.
-    let folder = query
-        .folder
-        .as_deref()
-        .and_then(|f| f.split('/').next())
-        .filter(|f| folders.iter().any(|known| known == f))
-        .unwrap_or(IMPORT_INBOX)
-        .to_string();
-    ImportTemplate {
-        active: "recipes".to_string(),
-        tr: Tr::new(lang),
-        error: query.error,
-        url: query.url.unwrap_or_default(),
-        folder,
-        folders,
-        prefix: state.url_prefix.clone(),
-        static_mode: false,
-        repo_url: None,
-        features,
-        viewer,
-    }
-    .into_response()
+    let form = ImportFormState {
+        folder: query.folder,
+        ..Default::default()
+    };
+    import_form(&state, lang, features, viewer, form).into_response()
 }
 
 #[derive(Deserialize)]
 struct ImportForm {
+    /// `text` for a pasted recipe, anything else for a link.
+    #[serde(default)]
+    mode: String,
+    #[serde(default)]
     url: String,
+    #[serde(default)]
+    text: String,
     folder: String,
 }
 
@@ -1459,8 +1489,40 @@ struct ImporterReply {
     error: Option<String>,
 }
 
+/// Ask the importer for the recipe; the saved file's path, or why not.
+async fn run_import(importer: &str, form: &ImportForm, from_text: bool) -> Result<String, String> {
+    let body = if from_text {
+        serde_json::json!({ "text": form.text, "folder": form.folder })
+    } else {
+        serde_json::json!({ "url": form.url.trim(), "folder": form.folder })
+    };
+    // Conversion retries while the LLM is busy: allow it a few minutes.
+    let response = reqwest::Client::new()
+        .post(format!("{importer}/api/import"))
+        .timeout(std::time::Duration::from_secs(300))
+        .json(&body)
+        .send()
+        .await
+        .map_err(|e| {
+            tracing::error!("Importer unreachable at {importer}: {e}");
+            "The importer is not reachable".to_string()
+        })?;
+    match response.json::<ImporterReply>().await {
+        Ok(ImporterReply {
+            path: Some(path), ..
+        }) => Ok(path),
+        Ok(ImporterReply {
+            error: Some(error), ..
+        }) => Err(error),
+        Ok(_) | Err(_) => Err("The importer gave no answer".to_string()),
+    }
+}
+
 async fn import_recipe(
     State(state): State<Arc<AppState>>,
+    Extension(lang): Extension<LanguageIdentifier>,
+    Extension(features): Extension<FeatureFlags>,
+    Extension(viewer): Extension<Viewer>,
     headers: HeaderMap,
     Form(form): Form<ImportForm>,
 ) -> axum::response::Response {
@@ -1472,49 +1534,41 @@ async fn import_recipe(
     let Some(importer) = importer_url() else {
         return StatusCode::NOT_FOUND.into_response();
     };
-    let prefix = &state.url_prefix;
-    let back = |error: &str| {
-        axum::response::Redirect::to(&format!(
-            "{prefix}/import?error={}&url={}&folder={}",
-            urlencoding::encode(error),
-            urlencoding::encode(&form.url),
-            urlencoding::encode(&form.folder)
-        ))
-        .into_response()
-    };
-    if !import_folders(&state.base_path).contains(&form.folder) {
-        return back("Unknown folder");
-    }
+    let from_text = form.mode == "text";
 
-    // Conversion retries while the LLM is busy: allow it a few minutes.
-    let reply = reqwest::Client::new()
-        .post(format!("{importer}/api/import"))
-        .timeout(std::time::Duration::from_secs(300))
-        .json(&serde_json::json!({ "url": form.url, "folder": form.folder }))
-        .send()
-        .await;
-    let reply = match reply {
-        Ok(response) => response.json::<ImporterReply>().await,
-        Err(e) => {
-            tracing::error!("Importer unreachable at {importer}: {e}");
-            return back("The importer is not reachable");
-        }
+    let result = if !import_folders(&state.base_path).contains(&form.folder) {
+        Err("Unknown folder".to_string())
+    } else if from_text && form.text.trim().is_empty() {
+        Err("Paste a recipe first".to_string())
+    } else {
+        run_import(&importer, &form, from_text).await
     };
-    match reply {
-        Ok(ImporterReply {
-            path: Some(path), ..
-        }) => {
+
+    match result {
+        Ok(path) => {
             let recipe = path.strip_suffix(".cook").unwrap_or(&path);
             axum::response::Redirect::to(&format!(
-                "{prefix}/recipe/{}",
+                "{}/recipe/{}",
+                state.url_prefix,
                 crate::util::encode_url_path(recipe)
             ))
             .into_response()
         }
-        Ok(ImporterReply {
-            error: Some(error), ..
-        }) => back(&error),
-        Ok(_) | Err(_) => back("The importer gave no answer"),
+        // Sent back in place, not by redirect: a pasted recipe would not fit in a URL.
+        Err(error) => {
+            let form = ImportFormState {
+                url: form.url,
+                text: form.text,
+                from_text,
+                folder: Some(form.folder),
+                error: Some(error),
+            };
+            (
+                StatusCode::UNPROCESSABLE_ENTITY,
+                import_form(&state, lang, features, viewer, form),
+            )
+                .into_response()
+        }
     }
 }
 
