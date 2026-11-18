@@ -43,6 +43,7 @@ cook server hash-password
 |----------|-------------|
 | `COOK_CORS_ORIGIN` | Origins allowed to make cross-origin browser requests, and whose hosts the server answers at, separated by commas. Same values as `--cors-origin`, which overrides it. For containers, where passing a flag means restating the image's whole command. An empty value means "unset". |
 | `COOK_RECIPES_ONLY` | `1`, `true` or `yes` turns on `--recipes-only`. Anything else, an empty value included, leaves it to the flag. |
+| `COOK_IMPORT_URL` | Link to an external recipe-import page. When set, the recipe list shows an **Import** button next to **New Recipe**, to people who may create recipes, pointing at this URL with the current folder added as `?folder=`. |
 | `COOK_CONFIG_DIR` | Global configuration directory, holding `aisle.conf`, `pantry.conf`, the cook.md session and the sync database. See [the README](../README.md#cook_config_dir). |
 
 No other option can be set this way; `COOK_USERS_FILE` is covered under [Signing in to make changes](#signing-in-to-make-changes). `--no-csrf-check` in particular has to be passed on the command line.

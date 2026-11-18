@@ -95,6 +95,7 @@ lsp-error = LSP Error
 
 # New Recipe
 new-recipe = New Recipe
+import-recipe = Import
 new-recipe-path = Recipe path
 new-recipe-filename = Recipe name
 new-recipe-placeholder = Dinner/Italian/Pasta Carbonara

@@ -54,6 +54,16 @@ pub fn prune_outside(tree: &mut cooklang_find::RecipeTree, base: &Utf8Path) {
 }
 
 /// Build a [`RecipesTemplate`] for either the root or a subdirectory.
+/// The Import button's link: the `COOK_IMPORT_URL` page, told which folder
+/// the list shows. `None` (unset or empty) hides the button.
+fn import_link(base: Option<String>, sub_path: Option<&str>) -> Option<String> {
+    let base = base.filter(|u| !u.is_empty())?;
+    Some(match sub_path {
+        Some(p) => format!("{base}?folder={}", urlencoding::encode(p)),
+        None => base,
+    })
+}
+
 pub fn build_recipes_template(input: RecipesBuildInput<'_>) -> Result<RecipesTemplate> {
     let RecipesBuildInput {
         base_path,
@@ -232,6 +242,8 @@ pub fn build_recipes_template(input: RecipesBuildInput<'_>) -> Result<RecipesTem
             None => format!("{url_prefix}/random"),
         });
 
+    let import_url = import_link(std::env::var("COOK_IMPORT_URL").ok(), sub_path);
+
     Ok(RecipesTemplate {
         active: "recipes".to_string(),
         current_name,
@@ -242,6 +254,7 @@ pub fn build_recipes_template(input: RecipesBuildInput<'_>) -> Result<RecipesTem
         new_menu_url,
         new_plan_url,
         random_recipe_url,
+        import_url,
         tr: Tr::new(lang),
         prefix: url_prefix.to_string(),
         static_mode,
@@ -1907,5 +1920,29 @@ mod reference_link_tests {
         assert_eq!(reference_query(Some(1.0 / 3.0), None), "?scale=0.333");
         assert_eq!(reference_query(None, Some(4)), "");
         assert_eq!(reference_query(Some(f64::NAN), None), "");
+    }
+}
+
+#[cfg(test)]
+mod import_link_tests {
+    use super::import_link;
+
+    #[test]
+    fn unset_or_empty_hides_the_button() {
+        assert_eq!(import_link(None, Some("Dessert")), None);
+        assert_eq!(import_link(Some(String::new()), None), None);
+    }
+
+    #[test]
+    fn passes_the_current_folder() {
+        let base = || Some("https://example.org/import/".to_string());
+        assert_eq!(
+            import_link(base(), None).as_deref(),
+            Some("https://example.org/import/")
+        );
+        assert_eq!(
+            import_link(base(), Some("Petit-déjeuner/Œufs")).as_deref(),
+            Some("https://example.org/import/?folder=Petit-d%C3%A9jeuner%2F%C5%92ufs")
+        );
     }
 }

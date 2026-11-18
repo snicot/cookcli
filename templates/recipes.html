@@ -50,6 +50,14 @@
                 </svg>
                 {{ tr.t("new-plan") }}
             </a>
+            {% if let Some(url) = import_url %}
+            <a href="{{ url }}" id="import-recipe" class="btn">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14"></path>
+                </svg>
+                {{ tr.t("import-recipe") }}
+            </a>
+            {% endif %}
             <a href="{{ new_recipe_url }}" class="btn btn-primary">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>

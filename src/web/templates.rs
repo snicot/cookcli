@@ -319,6 +319,9 @@ pub struct RecipesTemplate {
     pub new_plan_url: String,
     /// `/random` link for the current folder; `None` hides the button.
     pub random_recipe_url: Option<String>,
+    /// External recipe-import page from `COOK_IMPORT_URL`, with the current
+    /// folder as `?folder=`; `None` hides the Import button.
+    pub import_url: Option<String>,
     pub tr: Tr,
     pub prefix: String,
     pub static_mode: bool,

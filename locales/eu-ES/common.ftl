@@ -95,6 +95,7 @@ lsp-error = LSP-ren errorea
 
 # New Recipe
 new-recipe = Errezeta berria
+import-recipe = Inportatu
 new-recipe-path = Errezetaren bidea
 new-recipe-filename = Errezetaren izena
 new-recipe-placeholder = Afaria/Italiarra/Pasta Carbonara

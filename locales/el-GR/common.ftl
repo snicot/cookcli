@@ -95,6 +95,7 @@ lsp-error = Σφάλμα LSP
 
 # New Recipe
 new-recipe = Νέα συνταγή
+import-recipe = Εισαγωγή
 new-recipe-path = Διαδρομή συνταγής
 new-recipe-filename = Όνομα συνταγής
 new-recipe-placeholder = Βραδινό/Ελληνική/Μουσακάς
