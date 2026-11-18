@@ -858,8 +858,7 @@ dependencies = [
 [[package]]
 name = "cooklang-find"
 version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fdccb77666a616fc5c0fc5629894496a4ade7c93b1e04c33cd9beb44d7ee8554"
+source = "git+https://github.com/SebastienSyd/cooklang-find?branch=fix%2Fsearch-ignore-accents#20dc927bae6bcc188cff8269577e1251d67f7528"
 dependencies = [
  "camino",
  "glob",
@@ -868,6 +867,7 @@ dependencies = [
  "serde_json",
  "serde_yaml",
  "thiserror",
+ "unicode-normalization",
 ]
 
 [[package]]
@@ -1085,7 +1085,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d045de693cb712d0b22c6a64be5b953f67b3ce00ab5ad3dd5d8b441886ab8e1a"
 dependencies = [
  "quote",
- "syn 3.0.3",
+ "syn 2.0.118",
 ]
 
 [[package]]
@@ -4895,6 +4895,15 @@ name = "unicode-linebreak"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3b09c83c3c29d37506a3e260c08c03743a6bb66a9cd432c6934ab501a190571f"
+
+[[package]]
+name = "unicode-normalization"
+version = "0.1.26"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "75cd3fb03d5288b3ba9a1ee103ac7e9cbb59f0b03d64f8ddfcc04dd42758a85d"
+dependencies = [
+ "tinyvec",
+]
 
 [[package]]
 name = "unicode-width"

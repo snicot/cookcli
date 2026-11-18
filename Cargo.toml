@@ -195,3 +195,6 @@ codegen-units = 1
 inherits = "release"
 lto = "thin"
 codegen-units = 16
+
+[patch.crates-io]
+cooklang-find = { git = "https://github.com/SebastienSyd/cooklang-find", branch = "fix/search-ignore-accents" }
