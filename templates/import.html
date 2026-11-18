@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}{{ tr.t("import-title") }} - Cook{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto">
+    <h1 class="text-display font-bold text-text mb-8">{{ tr.t("import-title") }}</h1>
+
+    {% if let Some(err) = error %}
+    <div class="mb-6 card p-4 border-l-[3px] border-l-danger bg-danger-soft">
+        <div class="flex items-center gap-2">
+            <svg class="w-5 h-5 text-danger shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <p class="text-text">{{ err }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <form id="import-form" action="{{ prefix }}/import" method="POST" class="space-y-6">
+        <div>
+            <label for="import-url" class="block text-sm font-medium text-muted mb-2">{{ tr.t("import-url") }}</label>
+            <input
+                type="url"
+                id="import-url"
+                name="url"
+                required
+                autofocus
+                placeholder="https://…"
+                value="{{ url }}"
+                class="w-full px-4 py-3 border {% if error.is_some() %}border-danger{% else %}border-line{% endif %} rounded-[var(--radius-control)] bg-surface text-text outline-hidden focus:border-accent focus:shadow-[0_0_0_2px_var(--accent-soft)]"
+            >
+        </div>
+
+        <div>
+            <label for="import-folder" class="block text-sm font-medium text-muted mb-2">{{ tr.t("import-folder") }}</label>
+            <select id="import-folder" name="folder"
+                    class="w-full px-4 py-3 border border-line rounded-[var(--radius-control)] bg-surface text-text outline-hidden focus:border-accent focus:shadow-[0_0_0_2px_var(--accent-soft)]">
+                {% for f in folders %}
+                <option value="{{ f }}" {% if f.as_str() == folder.as_str() %}selected{% endif %}>{{ f }}</option>
+                {% endfor %}
+            </select>
+            <p class="mt-2 text-sm text-faint">{{ tr.t("import-hint") }}</p>
+        </div>
+
+        <div class="flex gap-4">
+            <a href="{{ prefix }}/" class="btn">{{ tr.t("action-cancel") }}</a>
+            <button type="submit" id="import-submit" class="btn btn-primary">
+                <svg id="import-spinner" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3" opacity="0.25"></circle>
+                    <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round"></path>
+                </svg>
+                <span id="import-label">{{ tr.t("import-submit") }}</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+// Conversion takes a few seconds: show it, and keep a second click from importing twice.
+document.getElementById('import-form').addEventListener('submit', () => {
+    const button = document.getElementById('import-submit');
+    button.disabled = true;
+    button.setAttribute('aria-busy', 'true');
+    document.getElementById('import-spinner').classList.remove('hidden');
+    document.getElementById('import-label').textContent = {{ tr.t("import-working")|json|safe }};
+});
+</script>
+{% endblock %}

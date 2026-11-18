@@ -96,6 +96,12 @@ lsp-error = LSP Error
 # New Recipe
 new-recipe = New Recipe
 import-recipe = Import
+import-title = Import a recipe
+import-url = Recipe URL
+import-folder = Folder
+import-hint = The page is converted to Cooklang, given a few tags and saved in this folder. It takes a few seconds.
+import-submit = Import
+import-working = Importing…
 new-recipe-path = Recipe path
 new-recipe-filename = Recipe name
 new-recipe-placeholder = Dinner/Italian/Pasta Carbonara

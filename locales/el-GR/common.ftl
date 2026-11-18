@@ -96,6 +96,12 @@ lsp-error = Σφάλμα LSP
 # New Recipe
 new-recipe = Νέα συνταγή
 import-recipe = Εισαγωγή
+import-title = Εισαγωγή συνταγής
+import-url = URL συνταγής
+import-folder = Φάκελος
+import-hint = Η σελίδα μετατρέπεται σε Cooklang, παίρνει μερικές ετικέτες και αποθηκεύεται σε αυτόν τον φάκελο. Διαρκεί λίγα δευτερόλεπτα.
+import-submit = Εισαγωγή
+import-working = Εισαγωγή…
 new-recipe-path = Διαδρομή συνταγής
 new-recipe-filename = Όνομα συνταγής
 new-recipe-placeholder = Βραδινό/Ελληνική/Μουσακάς

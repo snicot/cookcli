@@ -47,6 +47,7 @@ pub fn ui() -> Router<Arc<AppState>> {
         .route("/search", get(search_page))
         .route("/edit/{*path}", get(edit_page))
         .route("/new", get(new_page).post(create_recipe))
+        .route("/import", get(import_page).post(import_recipe))
         .route("/shopping-list", get(shopping_list_page))
         .route("/pantry", get(pantry_page))
         .route("/aisles", get(aisles_page))
@@ -1367,6 +1368,153 @@ async fn api_docs_page(
         repo_url: None,
         features,
         viewer,
+    }
+}
+
+// --- Import (fork) ----------------------------------------------------------
+//
+// `/import` sends a recipe URL and a folder to the importer at
+// `COOK_IMPORTER_URL` (`POST /api/import`, JSON `{url, folder}`), which
+// converts the page to Cooklang and saves it in that folder of the recipe
+// directory; it answers `{path}` or `{error}`. This server only shows the form
+// and opens the new recipe: the importer needs the same recipe directory.
+
+/// Where imports go when no folder is picked.
+const IMPORT_INBOX: &str = "À trier";
+
+fn importer_url() -> Option<String> {
+    std::env::var("COOK_IMPORTER_URL")
+        .ok()
+        .map(|u| u.trim_end_matches('/').to_string())
+        .filter(|u| !u.is_empty())
+}
+
+/// The folders an import can go in: the inbox, then the recipe directory's
+/// top-level folders.
+fn import_folders(base: &camino::Utf8Path) -> Vec<String> {
+    let mut folders: Vec<String> = std::fs::read_dir(base)
+        .into_iter()
+        .flatten()
+        .flatten()
+        .filter(|e| e.file_type().is_ok_and(|t| t.is_dir()))
+        .filter_map(|e| e.file_name().into_string().ok())
+        .filter(|name| !name.starts_with('.') && name != IMPORT_INBOX)
+        .collect();
+    folders.sort();
+    folders.insert(0, IMPORT_INBOX.to_string());
+    folders
+}
+
+#[derive(Deserialize)]
+struct ImportPageQuery {
+    folder: Option<String>,
+    url: Option<String>,
+    error: Option<String>,
+}
+
+async fn import_page(
+    State(state): State<Arc<AppState>>,
+    Extension(lang): Extension<LanguageIdentifier>,
+    Extension(features): Extension<FeatureFlags>,
+    Extension(viewer): Extension<Viewer>,
+    Query(query): Query<ImportPageQuery>,
+) -> axum::response::Response {
+    if importer_url().is_none() {
+        return StatusCode::NOT_FOUND.into_response();
+    }
+    let folders = import_folders(&state.base_path);
+    // A sub-folder's button passes its path; the import goes in its top folder.
+    let folder = query
+        .folder
+        .as_deref()
+        .and_then(|f| f.split('/').next())
+        .filter(|f| folders.iter().any(|known| known == f))
+        .unwrap_or(IMPORT_INBOX)
+        .to_string();
+    ImportTemplate {
+        active: "recipes".to_string(),
+        tr: Tr::new(lang),
+        error: query.error,
+        url: query.url.unwrap_or_default(),
+        folder,
+        folders,
+        prefix: state.url_prefix.clone(),
+        static_mode: false,
+        repo_url: None,
+        features,
+        viewer,
+    }
+    .into_response()
+}
+
+#[derive(Deserialize)]
+struct ImportForm {
+    url: String,
+    folder: String,
+}
+
+#[derive(Deserialize)]
+struct ImporterReply {
+    path: Option<String>,
+    error: Option<String>,
+}
+
+async fn import_recipe(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+    Form(form): Form<ImportForm>,
+) -> axum::response::Response {
+    let host = super::cors::host_header(&headers).unwrap_or_default();
+    if state.csrf_check && !validate_same_origin(&headers, host, &state.cors) {
+        tracing::warn!("CSRF validation failed for import request");
+        return (StatusCode::FORBIDDEN, "Invalid request origin").into_response();
+    }
+    let Some(importer) = importer_url() else {
+        return StatusCode::NOT_FOUND.into_response();
+    };
+    let prefix = &state.url_prefix;
+    let back = |error: &str| {
+        axum::response::Redirect::to(&format!(
+            "{prefix}/import?error={}&url={}&folder={}",
+            urlencoding::encode(error),
+            urlencoding::encode(&form.url),
+            urlencoding::encode(&form.folder)
+        ))
+        .into_response()
+    };
+    if !import_folders(&state.base_path).contains(&form.folder) {
+        return back("Unknown folder");
+    }
+
+    // Conversion retries while the LLM is busy: allow it a few minutes.
+    let reply = reqwest::Client::new()
+        .post(format!("{importer}/api/import"))
+        .timeout(std::time::Duration::from_secs(300))
+        .json(&serde_json::json!({ "url": form.url, "folder": form.folder }))
+        .send()
+        .await;
+    let reply = match reply {
+        Ok(response) => response.json::<ImporterReply>().await,
+        Err(e) => {
+            tracing::error!("Importer unreachable at {importer}: {e}");
+            return back("The importer is not reachable");
+        }
+    };
+    match reply {
+        Ok(ImporterReply {
+            path: Some(path), ..
+        }) => {
+            let recipe = path.strip_suffix(".cook").unwrap_or(&path);
+            axum::response::Redirect::to(&format!(
+                "{prefix}/recipe/{}",
+                crate::util::encode_url_path(recipe)
+            ))
+            .into_response()
+        }
+        Ok(ImporterReply {
+            error: Some(error), ..
+        }) => back(&error),
+        Ok(_) | Err(_) => back("The importer gave no answer"),
     }
 }
 

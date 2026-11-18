@@ -96,6 +96,12 @@ lsp-error = LSP Fel
 # New Recipe
 new-recipe = Nytt Recept
 import-recipe = Importera
+import-title = Importera ett recept
+import-url = Receptets URL
+import-folder = Mapp
+import-hint = Sidan omvandlas till Cooklang, får några taggar och sparas i den här mappen. Det tar några sekunder.
+import-submit = Importera
+import-working = Importerar…
 new-recipe-path = Recept sökväg
 new-recipe-filename = Recept namn
 new-recipe-placeholder = Middag/Italienskt/Pasta Carbonara

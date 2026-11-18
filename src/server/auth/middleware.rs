@@ -34,6 +34,7 @@ const OPEN_WRITES: &[&str] = &[
 /// account and a pending device-login code.
 const PROTECTED_READS: &[(&str, Capability)] = &[
     ("/new", Capability::EditRecipes),
+    ("/import", Capability::EditRecipes),
     ("/edit", Capability::EditRecipes),
     ("/api/ws/lsp", Capability::EditRecipes),
     ("/api/sync", Capability::Administer),
@@ -51,6 +52,7 @@ const WRITES: &[(&str, Capability)] = &[
     ("/api/recipe_rename", Capability::EditRecipes),
     ("/api/plans", Capability::EditRecipes),
     ("/new", Capability::EditRecipes),
+    ("/import", Capability::EditRecipes),
 ];
 
 /// What a guest may still open under `--recipes-only`, below each prefix:
@@ -299,6 +301,7 @@ mod tests {
             (Method::POST, "/api/recipe_rename/Soup.cook"),
             (Method::POST, "/api/plans/Week.menu"),
             (Method::POST, "/new"),
+            (Method::POST, "/import"),
         ] {
             assert_eq!(
                 needs(method.clone(), path),
@@ -341,6 +344,7 @@ mod tests {
     fn some_reads_need_a_capability() {
         for (path, capability) in [
             ("/new", EditRecipes),
+            ("/import", EditRecipes),
             ("/edit/Soup.cook", EditRecipes),
             ("/api/ws/lsp", EditRecipes),
             ("/api/sync/status", Administer),
@@ -415,6 +419,7 @@ mod tests {
             "/pantry",
             "/edit/Soup.cook",
             "/new",
+            "/import",
             "/api-docs",
             "/api/shopping_list/items",
             "/api/shopping_list/events",

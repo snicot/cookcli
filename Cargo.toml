@@ -19,6 +19,8 @@ default = ["self-update", "sync", "server", "import", "lsp"]
 # `cook server` - the axum web UI. Pulls in the whole HTTP server stack.
 server = [
     "dep:axum",
+    # Fork: the /import page calls an external importer (COOK_IMPORTER_URL).
+    "dep:reqwest",
     "dep:tower",
     "dep:tower-http",
     "dep:notify",
