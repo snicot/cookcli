@@ -25,7 +25,7 @@
         <!-- Recipe image if available -->
         {% match image_path %}
         {% when Some with (img) %}
-        <div class="mb-6 max-w-4xl mx-auto flex justify-center">
+        <div class="recipe-hero mb-6 max-w-4xl mx-auto flex justify-center">
             <img src="{{ img }}" alt="{{ recipe.name }}" class="rounded-xl shadow-[var(--shadow-card)] max-w-full h-auto max-h-[500px]">
         </div>
         {% when None %}
@@ -44,7 +44,7 @@
             <div class="hidden print:block text-lg font-normal text-muted">{{ tr.t("recipe-scale-label") }}: {{ scale }}x</div>
             {% endmatch %}
             {% endif %}
-            <div class="flex flex-wrap items-center gap-2 lg:gap-3 print:hidden">
+            <div class="recipe-actions flex flex-wrap items-center gap-2 lg:gap-3 print:hidden">
                 {% if !static_mode %}
                 <div class="flex items-center">
                     {% match servings %}

@@ -22,7 +22,7 @@
         <h1 class="text-display font-bold text-text">
             {{ current_name }}
         </h1>
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="page-actions flex flex-wrap items-center gap-2">
             {% if let Some(random_url) = random_recipe_url %}
             <a href="{{ random_url }}" id="random-recipe" class="icon-btn" aria-label="{{ tr.t("random-recipe") }}" title="{{ tr.t("random-recipe") }}">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
