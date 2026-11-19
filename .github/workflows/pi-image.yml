@@ -1,0 +1,46 @@
+# Fork-only: builds the image the Raspberry Pi runs (preview/pi = upstream main
+# + the fork's feature branches) and pushes it to ghcr.io/snicot/cookcli.
+# On the pi: docker compose pull cookcli && docker compose up -d cookcli
+name: Pi image
+
+on:
+  push:
+    branches: [preview/pi]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: pi-image
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          platforms: linux/arm64
+          build-args: CARGO_PROFILE=docker-dev
+          push: true
+          tags: |
+            ghcr.io/snicot/cookcli:preview
+            ghcr.io/snicot/cookcli:${{ github.sha }}
+          cache-from: type=gha,scope=pi-arm64
+          cache-to: type=gha,scope=pi-arm64,mode=max
