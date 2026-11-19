@@ -911,4 +911,43 @@
         .plan-add,
         .plan-line-button { width: 36px; height: 36px; }
     }
+
+    /* ---------- Phones ---------- */
+    /* Same layout, less chrome: icon-only buttons on one row, two cards per
+       row, a shorter hero picture and tighter boxes. Touch targets stay at
+       the coarse-pointer sizes above. */
+    @media (max-width: 639px) {
+        .nav-card { margin-bottom: 1rem; }
+        .nav-card > div { padding-top: .5rem; padding-bottom: .5rem; }
+        h1.text-display { font-size: 24px; }
+
+        /* Recipe list header: buttons drop their label (still read out by
+           screen readers). */
+        .page-actions { gap: .25rem; }
+        .page-actions .btn {
+            font-size: 0;
+            gap: 0;
+            width: 44px;
+            padding: 0;
+            justify-content: center;
+        }
+
+        /* Two cards per row, shorter picture, less padding. */
+        #recipes-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+        .recipe-card > div:has(> img) { height: 7rem; }
+        .recipe-card > .p-6 { padding: .75rem; }
+        .recipe-card-title { font-size: var(--text-body); margin-bottom: .25rem; overflow-wrap: anywhere; }
+        .recipe-card-icon { width: 40px; height: 40px; font-size: 18px; margin-bottom: .5rem; }
+
+        /* Recipe page. */
+        .recipe-hero { margin-bottom: 1rem; }
+        .recipe-hero img { max-height: 35vh; }
+        .recipe-actions .btn { width: 44px; padding: 0; justify-content: center; }
+        .recipe-actions .stepper input { width: 40px; }
+        #metadata-container { gap: .375rem; }
+        .metadata-pill { padding: .125rem .5rem; font-size: var(--text-meta); }
+        #recipe-body { gap: 1rem; }
+        #recipe-body .card { padding: .75rem; }
+        .step-box { padding: .75rem; }
+    }
 }
